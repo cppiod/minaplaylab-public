@@ -18,3 +18,5 @@ The self-hosted family app is maintained separately. This repository contains on
 - [Teacher Resource Cabin playlists](curriculum/teacher-resource-cabin.html): 43 playlists with grade, subject, and topic filters.
 
 Both indexes were compiled on 26 November 2026. Curriculum downloads remain hosted by the original publishers.
+
+- [Art of Problem Solving math index](curriculum/art-of-problem-solving.html): 76 playlists and YouTube courses grouped by track and chapter.
