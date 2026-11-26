@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Root Word Quest</title>
+<script src="../shared/seed.js"></script><script src="../shared/browser-store.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          fredoka: ['Fredoka', 'sans-serif'],
+          quicksand: ['Quicksand', 'sans-serif'],
+        },
+        animation: {
+          'float-cloud': 'floatCloud 18s linear infinite',
+          'float-cloud-slow': 'floatCloud 28s linear infinite',
+          'bounce-gentle': 'bounceGentle 2.5s ease-in-out infinite',
+          'sun-rotate': 'sunRotate 30s linear infinite',
+          'pop': 'pop .35s ease',
+        },
+        keyframes: {
+          floatCloud: {
+            '0%': { transform: 'translateX(-120%)' },
+            '100%': { transform: 'translateX(120vw)' },
+          },
+          bounceGentle: {
+            '0%, 100%': { transform: 'translateY(0px)' },
+            '50%': { transform: 'translateY(-8px)' },
+          },
+          sunRotate: {
+            '0%': { transform: 'rotate(0deg)' },
+            '100%': { transform: 'rotate(360deg)' },
+          },
+          pop: {
+            '0%': { transform: 'scale(0.7)', opacity: 0 },
+            '60%': { transform: 'scale(1.08)', opacity: 1 },
+            '100%': { transform: 'scale(1)' },
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body {
+    font-family: 'Fredoka', cursive, sans-serif;
+    background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 45%, #ecfdf5 75%, #d1fae5 100%);
+    min-height: 100vh;
+  }
+  .wood-card {
+    background: #ffffff;
+    border: 4px solid #fef3c7;
+    box-shadow: 0 12px 0px 0px #f59e0b, 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+  .wooden-sign {
+    background: #fef3c7;
+    border: 3px solid #b45309;
+    box-shadow: 0 4px 0px 0px #78350f;
+  }
+  .btn-3d { transition: transform .1s ease; }
+  .btn-3d:active { transform: translateY(2px); border-bottom-width: 2px !important; }
+  .btn-teal {
+    background: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 100%);
+    border-bottom: 4px solid #0f766e;
+  }
+  .btn-teal:hover { background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%); }
+  .btn-add {
+    background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+    border-bottom: 4px solid #c2410c;
+  }
+  .btn-add:hover { background: linear-gradient(180deg, #f97316 0%, #ea580c 100%); }
+  .btn-ghost {
+    background: #f1f5f9;
+    color: #475569;
+    border-bottom: 4px solid #cbd5e1;
+  }
+  .btn-ghost:hover { background: #e2e8f0; }
+  .modal-overlay { background: rgba(15, 23, 42, 0.6); }
+  [hidden] { display: none !important; }
+
+  /* Flip cards */
+  .flip-card { perspective: 1000px; cursor: pointer; width: 100%; height: 6.5rem; }
+  @media (min-width: 640px) { .flip-card { height: 7.25rem; } }
+  .flip-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transition: transform .45s;
+    transform-style: preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+  .flip-card-front, .flip-card-back {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0.5rem; text-align: center;
+    overflow: hidden;
+  }
+  .flip-card-front {
+    background: linear-gradient(180deg,#fef3c7,#fde68a);
+    border: 3px solid #f59e0b;
+  }
+  .flip-card-back {
+    background: #ffffff;
+    border: 3px solid #2dd4bf;
+    transform: rotateY(180deg);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .flip-card.matched .flip-card-back {
+    background: #d1fae5;
+    border-color: #10b981;
+  }
+  .flip-card.matched { cursor: default; }
+
+  .quiz-opt:disabled { cursor: default; }
+
+  .connect-card {position:relative;width:100%;min-height:76px;padding:10px 8px;border:2px solid #94a3b8;border-radius:12px;background:white;color:#334155;font-size:14px;font-weight:700;overflow-wrap:anywhere;}
+  .connect-card.selected {border-color:#0d9488;background:#ccfbf1;outline:2px solid #0d9488;}
+  .connect-card.matched {border-color:#059669;background:#d1fae5;}
+  .connect-card.wrong {border-color:#e11d48;background:#ffe4e6;}
+  .connect-card:focus-visible {outline:3px solid #0d9488;outline-offset:3px;}
+  @media(max-width:480px){#connectionBoard{column-gap:32px!important}.connect-card{font-size:13px;padding:8px 5px}}
+
+  [hidden] {display:none!important}
+  .quest-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:18px}
+  .quest-tabs button {padding:14px 8px;border:2px solid #d6b88a;border-radius:14px;background:#fffaf0;color:#664b2d;font-weight:800;font-size:14px}
+  .quest-tabs button[aria-selected="true"] {background:#0f766e;border-color:#115e59;color:white}
+  .quest-tabs button:focus-visible {outline:3px solid #f59e0b;outline-offset:3px}
+  #practiceScreen select {display:block;width:100%;padding:12px;margin:8px 0 16px;border:2px solid #99d9ca;border-radius:12px;background:white;color:#334155;font-weight:bold}
+</style>
+<link rel="stylesheet" href="learn.css">
+</head>
+<body class="root-quest relative flex flex-col overflow-x-hidden selection:bg-teal-300 selection:text-teal-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="quest-header">
+    <a href="../index.html" aria-label="Back to Mina Play Lab" title="Back to Mina Play Lab">⌂</a>
+    <h1>🌳 Root Word Quest</h1>
+  </header>
+
+  <main class="quest-main flex-1">
+
+    <nav class="quest-tabs" role="tablist" aria-label="Word Quest sections">
+      <button type="button" id="tabRootStudy" role="tab" aria-selected="true" aria-controls="rootStudyPanel">🌱 Root Study</button>
+      <button type="button" id="tabWorksheet" role="tab" aria-selected="false" aria-controls="practiceScreen" tabindex="-1">📚 Worksheet Quiz</button>
+      <button type="button" id="tabReview" role="tab" aria-selected="false" aria-controls="practiceScreen" tabindex="-1">📖 Review Test</button>
+    </nav>
+    <section id="rootStudyPanel" role="tabpanel" aria-labelledby="tabRootStudy">
+    <!-- MENU SCREEN -->
+    <div id="menuScreen">
+      <div class="quest-controls">
+        <p id="syncStatus" role="status" hidden></p>
+        <div class="root-label-row">
+          <label for="rootSelect">🌱 Choose a root to study</label>
+          <button id="openManageBtn" type="button">
+            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Manage Words
+          </button>
+        </div>
+        <select id="rootSelect" aria-describedby="wordCountHint"></select>
+        <p id="wordCountHint" role="status"></p>
+
+        <div class="quest-actions" role="group" aria-label="Root study activities">
+          <button type="button" id="modeLearnBtn" aria-pressed="true" aria-controls="rootLearning"><span aria-hidden="true">📖</span> Learn the words</button>
+          <button type="button" id="modeMemoryBtn"><span aria-hidden="true">🧠</span> Connect the Pairs</button>
+          <button type="button" id="modeSentencesBtn"><span aria-hidden="true">✏️</span> Sentence Practice</button>
+          <button type="button" id="modeCrosswordBtn" hidden><span aria-hidden="true">🧩</span> Crossword</button>
+          <button type="button" id="modeQuizBtn"><span aria-hidden="true">📝</span> Quiz</button>
+        </div>
+      </div>
+      <section id="rootLearning" class="root-learning" aria-label="Learn the words"></section>
+    </div>
+
+    <!-- MEMORY MATCH SCREEN -->
+    <div id="memoryScreen" class="wood-card rounded-3xl p-4 sm:p-6" hidden>
+      <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
+        <button id="mgBackBtn" class="btn-3d btn-ghost px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left"></i> Menu
+        </button>
+        <div class="flex items-center gap-3 font-quicksand font-bold text-xs sm:text-sm text-slate-600">
+          <span>🔄 <span id="mgMoves">0</span></span>
+          <span>🧩 <span id="mgPairsLeft">0</span></span>
+          <span>⏱️ <span id="mgTimer">00:00</span></span>
+        </div>
+      </div>
+      <div class="grid grid-cols-[1fr_2fr] gap-2.5 sm:gap-3 mb-1.5 font-quicksand text-xs font-black text-center">
+        <span class="text-teal-700">📖 Words</span>
+        <span class="text-slate-500">💡 Definitions</span>
+      </div>
+      <p id="connectionStatus" role="status" class="text-sm mb-3">Select a word, then its definition to draw a line.</p><div id="connectionBoard" style="position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);column-gap:56px"><svg id="connectionLines" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible"></svg>
+        <div id="memoryGridLeft" class="flex flex-col gap-2.5 sm:gap-3"></div>
+        <div id="memoryGridRight" class="flex flex-col gap-2.5 sm:gap-3"></div>
+      </div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quizScreen" class="wood-card rounded-3xl p-5 sm:p-8" hidden>
+      <div class="flex items-center justify-between gap-2 flex-wrap mb-4">
+        <button id="quizBackBtn" class="btn-3d btn-ghost px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
+          <i class="fa-solid fa-arrow-left"></i> Menu
+        </button>
+        <div class="flex items-center gap-3 font-quicksand font-bold text-xs text-slate-500">
+          <span id="quizProgress">Question 1 / 10</span>
+          <span>🏆 Score: <span id="quizScore">0</span></span>
+        </div>
+      </div>
+      <p id="quizPromptLabel" class="font-quicksand text-xs font-bold text-teal-600 mb-1.5 text-center"></p>
+      <div class="bg-teal-50 border-2 border-teal-100 rounded-2xl p-5 text-center mb-5">
+        <p id="quizPrompt" class="text-lg sm:text-xl font-black text-slate-800"></p>
+      </div>
+      <div id="quizOptions" class="grid grid-cols-1 gap-2.5"></div>
+      <div id="quizFeedback" class="mt-3 text-center text-xs font-extrabold p-3 rounded-2xl" hidden></div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="wood-card rounded-3xl p-6 sm:p-10 text-center animate-pop" hidden>
+      <h2 id="resultTitle" class="text-2xl sm:text-3xl font-black text-slate-800 mb-2">🎉 Great Job!</h2>
+      <p id="resultStars" class="text-4xl mb-3">⭐⭐⭐</p>
+      <p id="resultDetail" class="font-quicksand font-bold text-slate-500 mb-6"></p>
+      <div class="flex gap-3">
+        <button id="playAgainBtn" class="btn-3d btn-teal flex-1 py-3.5 rounded-2xl font-black text-white">Play Again</button>
+        <button id="backToMenuBtn" class="btn-3d btn-ghost flex-1 py-3.5 rounded-2xl font-black">Back to Menu</button>
+      </div>
+    </div>
+
+    </section>
+  </main>
+
+  <!-- Manage Vocabulary Modal -->
+  <div id="manageModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay backdrop-blur-sm p-4">
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6 border-4 border-amber-200">
+      <button id="manageModalClose" type="button" aria-label="Close"
+        class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center transition">✕</button>
+      <h2 class="font-black text-lg text-slate-800 mb-1 flex items-center gap-2"><i class="fa-solid fa-book text-teal-500"></i> Manage Vocabulary</h2>
+      <p class="font-quicksand text-xs font-bold text-slate-400 mb-4">Add, rename, or delete roots and words — everyone in the family shares this list.</p>
+
+      <div class="flex gap-2 mb-2">
+        <input id="newRootInput" type="text" placeholder="New root (e.g. bene (good))"
+          class="flex-1 px-3 py-2 rounded-xl border-2 border-amber-200 font-bold text-slate-700 focus:outline-none focus:border-teal-400">
+        <button id="addRootBtn" type="button" class="btn-3d btn-add text-white font-black px-4 py-2 rounded-xl shrink-0">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button id="openImportBtn" type="button" class="btn-3d btn-teal text-white font-black px-4 py-2 rounded-xl flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-file-import"></i> Import
+        </button>
+      </div>
+      <p id="manageMsg" class="font-quicksand text-xs font-bold mb-3" hidden>&nbsp;</p>
+
+      <div id="manageRootsList" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- Import Words Modal -->
+  <div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay backdrop-blur-sm p-4">
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 border-4 border-amber-200">
+      <button id="importModalClose" type="button" aria-label="Close"
+        class="absolute top-3 right-3 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center transition">✕</button>
+      <h2 class="font-black text-lg text-slate-800 mb-1 flex items-center gap-2"><i class="fa-solid fa-file-import text-teal-500"></i> Import Words</h2>
+      <p class="font-quicksand text-xs font-bold text-slate-400 mb-4">
+        Paste a list — one per line, as <span class="text-slate-600">word: definition</span>,
+        <span class="text-slate-600">word - definition</span>, or tab/comma-separated (pasted from a spreadsheet).
+      </p>
+
+      <label class="font-quicksand text-xs font-bold text-slate-500 mb-1 block">Import into</label>
+      <select id="importRootSelect" class="w-full px-3 py-2 rounded-xl border-2 border-amber-200 font-bold text-slate-700 bg-white mb-2 focus:outline-none focus:border-teal-400">
+        <option value="__new__">+ Create a new root…</option>
+      </select>
+      <input id="importNewRootInput" type="text" placeholder="New root name" hidden
+        class="w-full px-3 py-2 rounded-xl border-2 border-amber-200 font-bold text-slate-700 mb-3 focus:outline-none focus:border-teal-400">
+
+      <label class="font-quicksand text-xs font-bold text-slate-500 mb-1 block">Words</label>
+      <textarea id="importTextarea" rows="8" placeholder="biped: a creature with two feet
+centipede: a creature with 100 feet"
+        class="w-full px-3 py-2 rounded-xl border-2 border-amber-200 font-bold text-slate-700 text-sm leading-relaxed focus:outline-none focus:border-teal-400"></textarea>
+      <p id="importPreview" class="font-quicksand text-xs font-bold text-slate-500 mt-1.5">&nbsp;</p>
+
+      <button id="importSubmitBtn" type="button" class="btn-3d btn-teal w-full mt-3 py-3 rounded-2xl font-black text-white flex items-center justify-center gap-2">
+        <i class="fa-solid fa-file-import"></i> Import Words
+      </button>
+    </div>
+  </div>
+
+  <!-- Rolling Green Hill Footer -->
+  <footer class="relative z-10 mt-4 pt-8 pb-6 bg-emerald-500 text-emerald-950 border-t-4 border-emerald-600 text-center font-bold text-xs sm:text-sm">
+    <div class="max-w-4xl mx-auto px-4 flex flex-col items-center gap-2">
+      <div class="flex items-center gap-3 text-lg">
+        <span>🌳</span><span>📖</span><span>🌱</span><span>🧠</span><span>🌻</span>
+      </div>
+      <p>Root Word Quest • Part of Mina Play Lab</p>
+    </div>
+  </footer>
+
+<script>
+(function () {
+  var BEST_KEY_PREFIX = 'vocabGame.best.';
+
+  var SAMPLE_DATA = {
+    "ped (foot)": [
+      { word: "biped", definition: "a creature with two feet" },
+      { word: "centipede", definition: "a creature with 100 feet" },
+      { word: "impediment", definition: "something that stands in one's way; an obstacle" },
+      { word: "millipede", definition: "a creature with 1,000 feet" },
+      { word: "pedal", definition: "a lever that is moved with one's foot" },
+      { word: "peddler", definition: "a person who goes from door to door on foot trying to sell a product" },
+      { word: "pedestrian", definition: "a person who crosses the street on foot" },
+      { word: "pedicure", definition: "a foot treatment that could include soaking the feet and polishing the toenails" },
+      { word: "quadruped", definition: "a four-footed creature" },
+      { word: "tripod", definition: "a three-footed stand often used to balance a camera" }
+    ],
+    "man, manu (hand)": [
+      { word: "emancipate", definition: "to set free; to lend a hand in freeing someone; to release from someone's hands" },
+      { word: "manacles", definition: "handcuffs" },
+      { word: "manager", definition: "a person who has the upper hand; a person who is in charge of someone or something" },
+      { word: "mandate", definition: "an order or command placed in one's hands" },
+      { word: "maneuver", definition: "to handily or skillfully go around something" },
+      { word: "manicure", definition: "a treatment for the hands and nails" },
+      { word: "manual", definition: "a handbook; a book of directions" },
+      { word: "manufacture", definition: "to make by hand or by machine; to change raw material into a new product" },
+      { word: "manuscript", definition: "a handwritten or typed piece of writing, such as a book" }
+    ],
+    "spec (look, see)": [
+      { word: "circumspect", definition: "careful to look at all possibilities before acting; cautious; aware of consequences" },
+      { word: "inspect", definition: "to look at carefully in search of flaws" },
+      { word: "introspection", definition: "the act of looking into your own thoughts and feelings" },
+      { word: "perspective", definition: "one way of looking at things" },
+      { word: "respect", definition: "to look up to someone; to show honor" },
+      { word: "retrospective", definition: "looking back at past things" },
+      { word: "spectacle", definition: "something displayed for the public to see" },
+      { word: "spectacles", definition: "glasses that help someone see better" },
+      { word: "spectator", definition: "a person who watches something, such as a sporting event" },
+      { word: "speculate", definition: "to look at and think about something from different points of view" }
+    ]
+  };
+
+  var rootsData = JSON.parse(JSON.stringify(SAMPLE_DATA));
+  var rootIdByName = {};
+  var currentRoot = null;
+  var currentMode = 'memory';
+  var activityButtons = {
+    memory: 'modeMemoryBtn',
+    sentences: 'modeSentencesBtn',
+    crossword: 'modeCrosswordBtn',
+    quiz: 'modeQuizBtn'
+  };
+  var manageModalOpen = false;
+
+  // Memory match state
+  var mgCards = [], mgPairsCount = 0, mgFlipped = [], mgMatchedCount = 0, mgMoves = 0, mgLock = false, mgStartTime = null, mgTimerInterval = null, mgSession = 0;
+
+  // Quiz state
+  var quizQuestions = [], quizIndex = 0, quizScore = 0, quizSession = 0;
+
+  document.addEventListener('DOMContentLoaded', init);
+
+  function init() {
+    document.getElementById('rootSelect').addEventListener('change', onRootChange);
+    document.getElementById('modeLearnBtn').addEventListener('click', function () {
+      var selectedWord = document.querySelector('.learn-word[aria-pressed="true"]');
+      if (selectedWord) selectedWord.focus();
+    });
+    Object.keys(activityButtons).forEach(function (mode) {
+      document.getElementById(activityButtons[mode]).addEventListener('click', function () {
+        currentMode = mode;
+        startGame();
+      });
+    });
+    document.getElementById('playAgainBtn').addEventListener('click', startGame);
+    document.getElementById('backToMenuBtn').addEventListener('click', showMenu);
+    document.getElementById('mgBackBtn').addEventListener('click', showMenu);
+    document.getElementById('quizBackBtn').addEventListener('click', showMenu);
+
+    initSectionTabs();
+    initManageUi();
+    fetchWordLists();
+  }
+
+  // Distinguishes "fetched fine, family just hasn't added any vocab yet"
+  // (rootsData becomes {}, real empty state) from "couldn't reach the
+  // server" (keeps whatever was already loaded — the built-in SAMPLE_DATA
+  // on first load — so the game stays playable offline).
+  function fetchWordLists() {
+    updateSyncStatus('loading');
+    return fetch('/api/vocab/roots')
+      .then(function (r) { return r.json(); })
+      .then(function (json) {
+        if (json && json.ok) {
+          rootsData = json.data || {};
+          rootIdByName = {};
+          (json.roots || []).forEach(function (r) { rootIdByName[r.name] = r.id; });
+          updateSyncStatus(Object.keys(rootsData).length ? 'synced' : 'empty');
+        } else {
+          updateSyncStatus('error');
+        }
+        populateRootDropdown();
+        if (manageModalOpen) renderManageModal();
+      })
+      .catch(function () { updateSyncStatus('error'); populateRootDropdown(); });
+  }
+
+  function logPlayEvent(action) {
+    fetch('/api/analytics/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId: 'root-word-quest', action: action })
+    }).catch(function () {});
+  }
+
+  function updateSyncStatus(state) {
+    var el = document.getElementById('syncStatus');
+    var map = {
+      loading: '🔄 Loading your word list…',
+      synced: '💾 Saved in this browser',
+      empty: '📭 No vocabulary yet — tap "Manage Words" to add or import some!',
+      error: '⚠️ Could not load your word list — showing sample words instead'
+    };
+    el.textContent = map[state] || '';
+    el.hidden = state === 'synced';
+  }
+
+  function populateRootDropdown() {
+    var select = document.getElementById('rootSelect');
+    var rootNames = Object.keys(rootsData).filter(function (r) { return rootsData[r] && rootsData[r].length > 0; });
+    select.innerHTML = '';
+    if (rootNames.length > 1) {
+      var allOpt = document.createElement('option');
+      allOpt.value = '__all__';
+      allOpt.textContent = '🌟 All Roots Mixed';
+      select.appendChild(allOpt);
+    }
+    rootNames.forEach(function (name) {
+      var opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+    var previousAvailable = Array.from(select.options).some(function (option) {
+      return option.value === currentRoot;
+    });
+    if (!previousAvailable && rootNames.length > 1) select.value = rootNames[0];
+    if (previousAvailable) select.value = currentRoot;
+    currentRoot = select.value || null;
+    updateWordCountHint();
+  }
+
+  function onRootChange(e) {
+    currentRoot = e.target.value;
+    updateWordCountHint();
+  }
+
+  function getWordsForRoot(root) {
+    if (root === '__all__') {
+      return Object.keys(rootsData).reduce(function (acc, key) { return acc.concat(rootsData[key]); }, []);
+    }
+    return rootsData[root] || [];
+  }
+
+  function updateWordCountHint() {
+    var words = getWordsForRoot(currentRoot);
+    var canCrossword = window.RootWordPractice && window.RootWordPractice.hasCrossword(words);
+    document.getElementById('modeCrosswordBtn').hidden = !canCrossword;
+    Object.values(activityButtons).forEach(function (id) {
+      document.getElementById(id).disabled = !words.length;
+    });
+    if (window.RootWordLearning) window.RootWordLearning.render(currentRoot, rootsData);
+    document.getElementById('wordCountHint').textContent = words.length ? (words.length + ' words available') : 'No words found for this root';
+  }
+
+  function initSectionTabs() {
+    var tabs=['tabRootStudy','tabWorksheet','tabReview'];
+    function activate(id) {
+      showMenu();
+      document.getElementById('practiceScreen').hidden=true;
+      var root=id==='tabRootStudy';
+      document.getElementById('rootStudyPanel').hidden=!root;
+      tabs.forEach(function(t){var el=document.getElementById(t);el.setAttribute('aria-selected',String(t===id));el.tabIndex=t===id?0:-1;});
+      if(!root) {
+        var panel=document.getElementById('practiceScreen');panel.setAttribute('aria-labelledby',id);
+        window.RootWordPractice.start(id==='tabWorksheet'?'worksheet':'review',getWordsForRoot('__all__'));
+      }
+    }
+    tabs.forEach(function(id,i){
+      var tab=document.getElementById(id);
+      tab.onclick=function(){activate(id);};
+      tab.onkeydown=function(e){var target;
+        if(e.key==='ArrowRight')target=(i+1)%tabs.length;
+        if(e.key==='ArrowLeft')target=(i+tabs.length-1)%tabs.length;
+        if(e.key==='Home')target=0;if(e.key==='End')target=tabs.length-1;
+        if(target!==undefined){e.preventDefault();document.getElementById(tabs[target]).focus();activate(tabs[target]);}
+      };
+    });
+  }
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function startGame() {
+    if (!currentRoot) return;
+    document.getElementById('menuScreen').hidden = true;
+    document.getElementById('resultScreen').hidden = true;
+    document.getElementById('practiceScreen').hidden = true;
+    if (currentMode === 'sentences' || currentMode === 'crossword' || currentMode === 'worksheet' || currentMode === 'review') { window.RootWordPractice.start(currentMode, getWordsForRoot(currentRoot)); return; }
+    if (currentMode === 'memory') startMemoryGame(); else startQuiz();
+  }
+
+  function showMenu() {
+    clearInterval(mgTimerInterval);
+    mgSession++;
+    quizSession++;
+    document.getElementById('menuScreen').hidden = false;
+    document.getElementById('memoryScreen').hidden = true;
+    document.getElementById('quizScreen').hidden = true;
+    document.getElementById('resultScreen').hidden = true;
+  }
+
+  // ---------- MEMORY MATCH ----------
+  function startMemoryGame() {
+    mgSession++;
+    document.getElementById('connectionStatus').textContent='Select a word, then its definition to draw a line.';
+    var words = shuffle(getWordsForRoot(currentRoot)).slice(0, Math.min(8, getWordsForRoot(currentRoot).length));
+    mgPairsCount = words.length;
+    var wordCards = shuffle(words.map(function (w, i) { return { pairId: i, type: 'word', text: w.word, matched: false }; }));
+    var defCards = shuffle(words.map(function (w, i) { return { pairId: i, type: 'definition', text: w.definition, matched: false }; }));
+    mgCards = wordCards.concat(defCards);
+    mgFlipped = [];
+    mgMatchedCount = 0;
+    mgMoves = 0;
+    mgLock = false;
+    mgStartTime = Date.now();
+    clearInterval(mgTimerInterval);
+    mgTimerInterval = setInterval(updateMgTimer, 1000);
+
+    document.getElementById('memoryScreen').hidden = false;
+    document.getElementById('mgMoves').textContent = '0';
+    document.getElementById('mgPairsLeft').textContent = words.length;
+    document.getElementById('mgTimer').textContent = '00:00';
+    renderMemoryGrid();
+  }
+
+  function updateMgTimer() {
+    var secs = Math.floor((Date.now() - mgStartTime) / 1000);
+    var m = String(Math.floor(secs / 60)).padStart(2, '0');
+    var s = String(secs % 60).padStart(2, '0');
+    document.getElementById('mgTimer').textContent = m + ':' + s;
+  }
+
+  function renderMemoryColumn(elId, cards, startIdx) {
+    var el=document.getElementById(elId);
+    el.innerHTML=cards.map(function(c,i){var idx=startIdx+i;return '<button type="button" class="connect-card '+(c.matched?'matched':'')+' '+(mgFlipped.indexOf(idx)!==-1?'selected':'')+' '+(mgLock&&mgFlipped.indexOf(idx)!==-1?'wrong':'')+'" data-idx="'+idx+'" aria-pressed="'+(mgFlipped.indexOf(idx)!==-1)+'" '+(c.matched?'disabled':'')+'>'+escapeHtml(c.text)+(c.matched?' ✓':'')+'</button>';}).join('');
+    el.querySelectorAll('button').forEach(function(button){button.onclick=function(){flipCard(Number(button.dataset.idx));};});
+  }
+  function drawConnections(){
+    var board=document.getElementById('connectionBoard');
+    if(document.getElementById('memoryScreen').hidden)return;
+    var left=Array.from(document.querySelectorAll('#memoryGridLeft button')),right=Array.from(document.querySelectorAll('#memoryGridRight button'));
+    left.concat(right).forEach(function(b){b.style.height='auto';});
+    left.forEach(function(b,i){if(right[i]){var height=Math.max(b.offsetHeight,right[i].offsetHeight);b.style.height=height+'px';right[i].style.height=height+'px';}});
+    var svg=document.getElementById('connectionLines'),bounds=board.getBoundingClientRect();svg.replaceChildren();
+    function line(a,b,color){var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();var el=document.createElementNS('http://www.w3.org/2000/svg','line');el.setAttribute('x1',ar.right-bounds.left);el.setAttribute('y1',ar.top+ar.height/2-bounds.top);el.setAttribute('x2',br.left-bounds.left);el.setAttribute('y2',br.top+br.height/2-bounds.top);el.setAttribute('stroke',color);el.setAttribute('stroke-width','3');svg.appendChild(el);}
+    mgCards.slice(0,mgPairsCount).forEach(function(c,i){if(c.matched){var j=mgCards.slice(mgPairsCount).findIndex(function(d){return d.pairId===c.pairId;});line(left[i],right[j],'#059669');}});
+    if(mgLock&&mgFlipped.length===2){var a=mgFlipped.find(function(i){return i<mgPairsCount;}),b=mgFlipped.find(function(i){return i>=mgPairsCount;});if(a!==undefined&&b!==undefined)line(left[a],right[b-mgPairsCount],'#e11d48');}
+  }
+  var connectionResize=new ResizeObserver(function(){requestAnimationFrame(drawConnections);});
+  connectionResize.observe(document.getElementById('connectionBoard'));
+  function renderMemoryGrid() {
+    renderMemoryColumn('memoryGridLeft',mgCards.slice(0,mgPairsCount),0);
+    renderMemoryColumn('memoryGridRight',mgCards.slice(mgPairsCount),mgPairsCount);
+    requestAnimationFrame(drawConnections);
+  }
+
+  function flipCard(idx) {
+    if (mgLock) return;
+    var card = mgCards[idx];
+    if (card.matched || mgFlipped.indexOf(idx) !== -1) return;
+    if(mgFlipped.length && mgCards[mgFlipped[0]].type===card.type)mgFlipped=[];
+    mgFlipped.push(idx);
+    renderMemoryGrid();
+    if (mgFlipped.length === 2) {
+      mgMoves++;
+      document.getElementById('mgMoves').textContent = mgMoves;
+      var i1 = mgFlipped[0], i2 = mgFlipped[1];
+      if (mgCards[i1].pairId === mgCards[i2].pairId) {
+        mgCards[i1].matched = true;
+        mgCards[i2].matched = true;
+        mgMatchedCount++;
+        document.getElementById('connectionStatus').textContent='✓ Correct connection!';
+        mgFlipped = [];
+        document.getElementById('mgPairsLeft').textContent = mgPairsCount - mgMatchedCount;
+        renderMemoryGrid();
+        if (mgMatchedCount === mgPairsCount) {
+          clearInterval(mgTimerInterval);
+          var doneSession = mgSession;
+          setTimeout(function () { if (mgSession === doneSession) finishMemoryGame(); }, 500);
+        }
+      } else {
+        mgLock = true;
+        document.getElementById('connectionStatus').textContent='Not a match. Try another connection.';
+        renderMemoryGrid();
+        var thisSession = mgSession;
+        setTimeout(function () {
+          if (mgSession !== thisSession) return;
+          mgFlipped = [];
+          mgLock = false;
+          renderMemoryGrid();
+        }, 900);
+      }
+    }
+  }
+
+  function finishMemoryGame() {
+    var pairs = mgPairsCount;
+    var secs = Math.floor((Date.now() - mgStartTime) / 1000);
+    var stars = 1;
+    if (mgMoves <= pairs * 1.5) stars = 3;
+    else if (mgMoves <= pairs * 2.5) stars = 2;
+
+    var bestKey = BEST_KEY_PREFIX + 'memory.' + currentRoot;
+    var prevBest = null;
+    try { prevBest = JSON.parse(localStorage.getItem(bestKey) || 'null'); } catch (e) { prevBest = null; }
+    var isNewBest = false;
+    if (!prevBest || mgMoves < prevBest.moves) {
+      localStorage.setItem(bestKey, JSON.stringify({ moves: mgMoves, seconds: secs }));
+      isNewBest = true;
+    }
+
+    document.getElementById('memoryScreen').hidden = true;
+    document.getElementById('resultScreen').hidden = false;
+    document.getElementById('resultTitle').textContent = '🎉 Root Mastered!';
+    document.getElementById('resultStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+    var m = String(Math.floor(secs / 60)).padStart(2, '0');
+    var s = String(secs % 60).padStart(2, '0');
+    document.getElementById('resultDetail').textContent =
+      mgMoves + ' moves · ' + m + ':' + s +
+      (isNewBest ? ' — New best! 🏆' : (prevBest ? (' (best: ' + prevBest.moves + ' moves)') : ''));
+    logPlayEvent('memory_complete');
+  }
+
+  // ---------- QUIZ ----------
+  function startQuiz() {
+    quizSession++;
+    var words = getWordsForRoot(currentRoot);
+    var allWords = Object.keys(rootsData).reduce(function (acc, key) { return acc.concat(rootsData[key]); }, []);
+    var qCount = Math.min(10, words.length);
+    var pool = shuffle(words).slice(0, qCount);
+    quizQuestions = pool.map(function (w) {
+      var direction = Math.random() < 0.5 ? 'wordToDef' : 'defToWord';
+      var distractorPool = words.filter(function (x) { return x.word !== w.word; });
+      if (distractorPool.length < 3) {
+        var extra = allWords.filter(function (x) {
+          return x.word !== w.word && distractorPool.indexOf(x) === -1;
+        });
+        distractorPool = distractorPool.concat(extra);
+      }
+      var distractors = shuffle(distractorPool).slice(0, 3);
+      var options = shuffle([w].concat(distractors)).map(function (o) {
+        return direction === 'wordToDef' ? o.definition : o.word;
+      });
+      return {
+        prompt: direction === 'wordToDef' ? w.word : w.definition,
+        promptLabel: direction === 'wordToDef' ? 'What does this word mean?' : 'Which word matches this definition?',
+        correct: direction === 'wordToDef' ? w.definition : w.word,
+        options: options
+      };
+    });
+    quizIndex = 0;
+    quizScore = 0;
+    document.getElementById('quizScreen').hidden = false;
+    renderQuizQuestion();
+  }
+
+  function renderQuizQuestion() {
+    var q = quizQuestions[quizIndex];
+    document.getElementById('quizProgress').textContent = 'Question ' + (quizIndex + 1) + ' / ' + quizQuestions.length;
+    document.getElementById('quizScore').textContent = quizScore;
+    document.getElementById('quizPromptLabel').textContent = q.promptLabel;
+    document.getElementById('quizPrompt').textContent = q.prompt;
+    var optsEl = document.getElementById('quizOptions');
+    var fb = document.getElementById('quizFeedback');
+    fb.hidden = true;
+    optsEl.innerHTML = q.options.map(function (opt, i) {
+      return '<button class="quiz-opt w-full text-left px-4 py-3 rounded-2xl bg-white border-2 border-slate-200 hover:border-teal-400 font-quicksand font-bold text-sm text-slate-700 transition" data-i="' + i + '">' + escapeHtml(opt) + '</button>';
+    }).join('');
+    Array.prototype.forEach.call(optsEl.querySelectorAll('.quiz-opt'), function (btn) {
+      btn.addEventListener('click', function () { answerQuiz(Number(btn.getAttribute('data-i'))); });
+    });
+  }
+
+  function answerQuiz(i) {
+    var q = quizQuestions[quizIndex];
+    var chosen = q.options[i];
+    var correct = chosen === q.correct;
+    if (correct) quizScore++;
+    var buttons = document.querySelectorAll('.quiz-opt');
+    Array.prototype.forEach.call(buttons, function (btn, idx) {
+      btn.disabled = true;
+      if (q.options[idx] === q.correct) {
+        btn.classList.add('border-emerald-500', 'bg-emerald-50');
+      } else if (idx === i) {
+        btn.classList.add('border-rose-400', 'bg-rose-50');
+      }
+    });
+    var fb = document.getElementById('quizFeedback');
+    fb.textContent = correct ? '✅ Correct!' : ('❌ Not quite — it was "' + q.correct + '"');
+    fb.className = 'mt-3 text-center text-xs font-extrabold p-3 rounded-2xl ' + (correct ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700');
+    fb.hidden = false;
+    var thisSession = quizSession;
+    setTimeout(function () {
+      if (quizSession !== thisSession) return;
+      quizIndex++;
+      if (quizIndex < quizQuestions.length) renderQuizQuestion(); else finishQuiz();
+    }, 1200);
+  }
+
+  function finishQuiz() {
+    document.getElementById('quizScreen').hidden = true;
+    document.getElementById('resultScreen').hidden = false;
+    var total = quizQuestions.length;
+    var pct = Math.round((quizScore / total) * 100);
+    var stars = 1;
+    if (pct >= 90) stars = 3; else if (pct >= 70) stars = 2;
+
+    var bestKey = BEST_KEY_PREFIX + 'quiz.' + currentRoot;
+    var prevBest = null;
+    try { prevBest = JSON.parse(localStorage.getItem(bestKey) || 'null'); } catch (e) { prevBest = null; }
+    var isNewBest = false;
+    if (!prevBest || quizScore > prevBest.score) {
+      localStorage.setItem(bestKey, JSON.stringify({ score: quizScore, total: total }));
+      isNewBest = true;
+    }
+
+    document.getElementById('resultTitle').textContent = pct >= 70 ? '🎉 Great Job!' : '💪 Keep Practicing!';
+    document.getElementById('resultStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+    document.getElementById('resultDetail').textContent =
+      quizScore + ' / ' + total + ' correct (' + pct + '%)' +
+      (isNewBest ? ' — New best! 🏆' : (prevBest ? (' (best: ' + prevBest.score + '/' + prevBest.total + ')') : ''));
+    logPlayEvent('quiz_complete');
+  }
+
+  function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---------- Manage Vocabulary (add/edit/delete roots & words) ----------
+  // Any signed-in family member can manage this shared list — it used to be
+  // an admin-only CMS on the admin dashboard; that's been removed in favor
+  // of managing it here, right where it's used.
+  function openModalEl(el) { el.classList.remove('hidden'); el.classList.add('flex'); }
+  function closeModalEl(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+
+  function showManageMsg(text, isError) {
+    var el = document.getElementById('manageMsg');
+    el.textContent = text;
+    el.className = 'font-quicksand text-xs font-bold mb-3 ' + (isError ? 'text-rose-600' : 'text-emerald-600');
+    el.hidden = false;
+    setTimeout(function () { el.hidden = true; }, 2500);
+  }
+
+  function initManageUi() {
+    var manageModal = document.getElementById('manageModal');
+    var importModal = document.getElementById('importModal');
+
+    document.getElementById('openManageBtn').addEventListener('click', function () {
+      manageModalOpen = true;
+      renderManageModal();
+      openModalEl(manageModal);
+    });
+    document.getElementById('manageModalClose').addEventListener('click', function () {
+      manageModalOpen = false;
+      closeModalEl(manageModal);
+    });
+    manageModal.addEventListener('click', function (e) { if (e.target === manageModal) { manageModalOpen = false; closeModalEl(manageModal); } });
+
+    document.getElementById('addRootBtn').addEventListener('click', function () {
+      var input = document.getElementById('newRootInput');
+      var name = input.value.trim();
+      if (!name) return;
+      apiRequest('POST', '/api/vocab/roots', { name: name }).then(function (data) {
+        if (!data.ok) { showManageMsg(data.error || 'Could not add root.', true); return; }
+        input.value = '';
+        showManageMsg('Added "' + name + '"!');
+        fetchWordLists();
+      });
+    });
+    document.getElementById('newRootInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') document.getElementById('addRootBtn').click();
+    });
+
+    document.getElementById('openImportBtn').addEventListener('click', openImportModal);
+    document.getElementById('importModalClose').addEventListener('click', function () { closeModalEl(importModal); });
+    importModal.addEventListener('click', function (e) { if (e.target === importModal) closeModalEl(importModal); });
+    document.getElementById('importRootSelect').addEventListener('change', function () {
+      document.getElementById('importNewRootInput').hidden = this.value !== '__new__';
+    });
+    document.getElementById('importTextarea').addEventListener('input', updateImportPreview);
+    document.getElementById('importSubmitBtn').addEventListener('click', submitImport);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!importModal.classList.contains('hidden')) { closeModalEl(importModal); return; }
+      if (!manageModal.classList.contains('hidden')) { manageModalOpen = false; closeModalEl(manageModal); }
+    });
+  }
+
+  // Small wrapper so every manage/import call handles network failure the
+  // same way instead of each call site needing its own .catch().
+  function apiRequest(method, url, body) {
+    return fetch(url, {
+      method: method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined
+    })
+      .then(function (r) { return r.json(); })
+      .catch(function () { return { ok: false, error: 'Could not reach browser storage.' }; });
+  }
+
+  function renderManageModal() {
+    var container = document.getElementById('manageRootsList');
+    var names = Object.keys(rootsData);
+    if (!names.length) {
+      container.innerHTML = '<p class="font-quicksand text-xs font-bold text-slate-400 text-center py-4">No roots yet — add one above, or import a list.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    names.forEach(function (name) {
+      var rootId = rootIdByName[name];
+      var words = rootsData[name] || [];
+
+      var card = document.createElement('div');
+      card.className = 'border-2 border-teal-100 rounded-2xl p-3';
+
+      var headerRow = document.createElement('div');
+      headerRow.className = 'flex items-center gap-2 mb-2';
+
+      var nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = name;
+      nameInput.className = 'flex-1 px-2.5 py-1.5 rounded-lg border-2 border-teal-200 font-black text-sm text-teal-800 focus:outline-none focus:border-teal-400';
+      nameInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') nameInput.blur(); });
+      nameInput.addEventListener('blur', function () {
+        var newName = nameInput.value.trim();
+        if (!newName || newName === name) { nameInput.value = name; return; }
+        apiRequest('PUT', '/api/vocab/roots/' + rootId, { name: newName }).then(function (data) {
+          if (!data.ok) { showManageMsg(data.error || 'Could not rename root.', true); nameInput.value = name; return; }
+          showManageMsg('Renamed to "' + newName + '"!');
+          fetchWordLists();
+        });
+      });
+
+      var delRootBtn = document.createElement('button');
+      delRootBtn.type = 'button';
+      delRootBtn.className = 'text-slate-300 hover:text-rose-400 text-base px-1.5 shrink-0 transition';
+      delRootBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+      delRootBtn.title = 'Delete root';
+      delRootBtn.addEventListener('click', function () {
+        if (!confirm('Delete "' + name + '" and all ' + words.length + ' of its words? This cannot be undone.')) return;
+        apiRequest('DELETE', '/api/vocab/roots/' + rootId).then(function () {
+          showManageMsg('Deleted "' + name + '".');
+          fetchWordLists();
+        });
+      });
+
+      headerRow.appendChild(nameInput);
+      headerRow.appendChild(delRootBtn);
+      card.appendChild(headerRow);
+
+      words.forEach(function (w) {
+        var row = document.createElement('div');
+        row.className = 'flex items-center gap-2 py-1';
+
+        var wordInput = document.createElement('input');
+        wordInput.type = 'text';
+        wordInput.value = w.word;
+        wordInput.className = 'w-28 shrink-0 px-2 py-1 rounded-lg border border-slate-200 font-bold text-teal-700 text-xs focus:outline-none focus:border-teal-400';
+
+        var defInput = document.createElement('input');
+        defInput.type = 'text';
+        defInput.value = w.definition;
+        defInput.className = 'flex-1 px-2 py-1 rounded-lg border border-slate-200 text-slate-600 text-xs focus:outline-none focus:border-teal-400';
+
+        function saveWordEdit() {
+          var newWord = wordInput.value.trim();
+          var newDef = defInput.value.trim();
+          if (!newWord || !newDef) { wordInput.value = w.word; defInput.value = w.definition; return; }
+          if (newWord === w.word && newDef === w.definition) return;
+          apiRequest('PUT', '/api/vocab/words/' + w.id, { word: newWord, definition: newDef }).then(function (data) {
+            if (!data.ok) { showManageMsg(data.error || 'Could not update word.', true); wordInput.value = w.word; defInput.value = w.definition; return; }
+            fetchWordLists();
+          });
+        }
+        wordInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') wordInput.blur(); });
+        defInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') defInput.blur(); });
+        wordInput.addEventListener('blur', saveWordEdit);
+        defInput.addEventListener('blur', saveWordEdit);
+
+        var delWordBtn = document.createElement('button');
+        delWordBtn.type = 'button';
+        delWordBtn.className = 'text-slate-300 hover:text-rose-400 text-sm px-1 shrink-0 transition';
+        delWordBtn.innerHTML = '&times;';
+        delWordBtn.title = 'Delete word';
+        delWordBtn.addEventListener('click', function () {
+          apiRequest('DELETE', '/api/vocab/words/' + w.id).then(function () { fetchWordLists(); });
+        });
+
+        row.appendChild(wordInput);
+        row.appendChild(defInput);
+        row.appendChild(delWordBtn);
+        card.appendChild(row);
+      });
+
+      var addForm = document.createElement('form');
+      addForm.className = 'flex gap-2 mt-2';
+      addForm.innerHTML =
+        '<input type="text" placeholder="word" class="w-28 shrink-0 px-2 py-1.5 rounded-lg border-2 border-amber-200 font-bold text-xs focus:outline-none focus:border-teal-400" required>' +
+        '<input type="text" placeholder="definition" class="flex-1 px-2 py-1.5 rounded-lg border-2 border-amber-200 text-xs focus:outline-none focus:border-teal-400" required>' +
+        '<button type="submit" class="btn-3d btn-add text-white font-bold px-3 py-1.5 rounded-lg text-xs shrink-0">+ Word</button>';
+      addForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var inputs = addForm.querySelectorAll('input');
+        var word = inputs[0].value.trim();
+        var definition = inputs[1].value.trim();
+        if (!word || !definition) return;
+        apiRequest('POST', '/api/vocab/roots/' + rootId + '/words', { word: word, definition: definition }).then(function (data) {
+          if (!data.ok) { showManageMsg(data.error || 'Could not add word.', true); return; }
+          addForm.reset();
+          fetchWordLists();
+        });
+      });
+      card.appendChild(addForm);
+
+      container.appendChild(card);
+    });
+  }
+
+  // ---------- Import ----------
+  function openImportModal() {
+    var select = document.getElementById('importRootSelect');
+    select.innerHTML = '<option value="__new__">+ Create a new root…</option>' +
+      Object.keys(rootsData).map(function (name) {
+        return '<option value="' + rootIdByName[name] + '">' + escapeHtml(name) + '</option>';
+      }).join('');
+    document.getElementById('importNewRootInput').hidden = true;
+    document.getElementById('importNewRootInput').value = '';
+    document.getElementById('importTextarea').value = '';
+    updateImportPreview();
+    openModalEl(document.getElementById('importModal'));
+  }
+
+  // Splits a line on the FIRST occurrence of a delimiter only, so a
+  // definition that itself contains a colon/comma doesn't get truncated.
+  function splitFirst(line, delimiter) {
+    var idx = line.indexOf(delimiter);
+    if (idx === -1) return null;
+    return [line.slice(0, idx).trim(), line.slice(idx + delimiter.length).trim()];
+  }
+
+  function parseImportLine(line) {
+    line = line.trim();
+    if (!line) return null;
+    var pair = null;
+    if (line.indexOf('\t') !== -1) pair = splitFirst(line, '\t');
+    else if (line.indexOf(':') !== -1) pair = splitFirst(line, ':');
+    else if (line.indexOf(' - ') !== -1) pair = splitFirst(line, ' - ');
+    else if (line.indexOf(',') !== -1) pair = splitFirst(line, ',');
+    if (!pair || !pair[0] || !pair[1]) return null;
+    return { word: pair[0], definition: pair[1] };
+  }
+
+  // Accepts either line-based text or a pasted JSON array of {word,
+  // definition} objects, for anyone exporting from another tool.
+  function parseImportText(text) {
+    var trimmed = text.trim();
+    if (trimmed.charAt(0) === '[') {
+      try {
+        var arr = JSON.parse(trimmed);
+        if (Array.isArray(arr)) {
+          return arr.map(function (item) {
+            return { word: String((item && item.word) || '').trim(), definition: String((item && item.definition) || '').trim() };
+          }).filter(function (item) { return item.word && item.definition; });
+        }
+      } catch (e) { /* not JSON — fall through to line parsing */ }
+    }
+    return text.split('\n').map(parseImportLine).filter(Boolean);
+  }
+
+  function updateImportPreview() {
+    var text = document.getElementById('importTextarea').value;
+    var totalLines = text.split('\n').filter(function (l) { return l.trim(); }).length;
+    var preview = document.getElementById('importPreview');
+    if (!totalLines) { preview.textContent = ' '; return; }
+    var parsed = parseImportText(text);
+    preview.textContent = parsed.length + ' of ' + totalLines + ' line' + (totalLines === 1 ? '' : 's') + ' ready to import' +
+      (parsed.length < totalLines ? ' (some lines could not be read)' : '');
+  }
+
+  function submitImport() {
+    var select = document.getElementById('importRootSelect');
+    var parsed = parseImportText(document.getElementById('importTextarea').value);
+    if (!parsed.length) { document.getElementById('importPreview').textContent = 'No valid word/definition pairs found.'; return; }
+
+    function doImport(rootId) {
+      apiRequest('POST', '/api/vocab/roots/' + rootId + '/words/import', { words: parsed }).then(function (data) {
+        if (!data.ok) { document.getElementById('importPreview').textContent = data.error || 'Import failed.'; return; }
+        closeModalEl(document.getElementById('importModal'));
+        showManageMsg('Imported ' + data.imported + ' word' + (data.imported === 1 ? '' : 's') + '!');
+        fetchWordLists();
+      });
+    }
+
+    if (select.value === '__new__') {
+      var newName = document.getElementById('importNewRootInput').value.trim();
+      if (!newName) { document.getElementById('importPreview').textContent = 'Please name the new root first.'; return; }
+      apiRequest('POST', '/api/vocab/roots', { name: newName }).then(function (data) {
+        if (!data.ok) { document.getElementById('importPreview').textContent = data.error || 'Could not create root.'; return; }
+        doImport(data.root.id);
+      });
+    } else {
+      doImport(Number(select.value));
+    }
+  }
+})();
+</script>
+<script src="worksheet-data.js"></script><script src="practice.js"></script><script src="learn.js"></script></body>
+</html>
+

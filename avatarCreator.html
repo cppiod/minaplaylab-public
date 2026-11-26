@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Pixel Avatar Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'VT323', monospace;
+            background-color: #f7a382;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .pixel-font-title {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        canvas, img, .pixel-render {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+
+        /* Picture 1 Inspired Orange Frame Theme */
+        .pixel-box-main {
+            position: relative;
+            border: 4px solid #2d232e;
+            box-shadow: 6px 6px 0px #1d161e;
+            background-color: #ffffff;
+            border-radius: 12px;
+        }
+
+        .popup-close-btn {
+            position: absolute;
+            top: -16px;
+            right: -16px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ff4d4d;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50%;
+            z-index: 20;
+        }
+
+        .pixel-box-orange {
+            background-color: #ff6800;
+            border: 3px solid #1d161e;
+            border-radius: 12px;
+        }
+
+        .pixel-btn {
+            border: 3px solid #2d232e;
+            box-shadow: 3px 3px 0px #2d232e;
+            transition: all 0.05s ease;
+            border-radius: 8px;
+        }
+
+        .pixel-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px #2d232e;
+        }
+
+        .pixel-btn:active, .pixel-btn.active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #2d232e;
+        }
+
+        .category-btn {
+            border: 2px solid transparent;
+            color: #1d161e;
+            font-size: 1.2rem;
+            text-align: left;
+            padding: 4px 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.1s ease;
+        }
+
+        .category-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .category-btn.active {
+            background-color: #ff6800;
+            color: #ffffff;
+            font-weight: bold;
+            border: 2px solid #2d232e;
+            box-shadow: 2px 2px 0px #1d161e;
+        }
+
+        /* Shiny Orange Tiles for Assets */
+        .asset-tile {
+            background: linear-gradient(180deg, #ffd3b3 0%, #ffa575 100%);
+            border: 3px solid #2d232e;
+            box-shadow: 3px 3px 0px #1d161e;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.05s ease, border-color 0.1s ease;
+        }
+
+        .asset-tile:hover {
+            transform: scale(1.03);
+            background: linear-gradient(180deg, #ffe2cc 0%, #ffb68c 100%);
+        }
+
+        .asset-tile.active {
+            border: 3px solid #ffffff;
+            box-shadow: inset 0px 0px 0px 2px #ff6800, 3px 3px 0px #1d161e;
+            background: linear-gradient(180deg, #ff8c42 0%, #e05300 100%);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ffe3d1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff6800;
+            border: 2px solid #2d232e;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-2 sm:p-4 flex flex-col items-center justify-center">
+
+    <header class="text-center mb-3">
+        <h1 class="pixel-font-title text-2xl sm:text-3xl text-white drop-shadow-[3px_3px_0_#2d232e] mb-1">
+            Cat Pixel Avatar Maker
+        </h1>
+        <p class="text-lg sm:text-xl text-[#2d232e] font-bold">
+            ★ Picture 1 Layout × Picture 2 Isolated Asset Style ★
+        </p>
+    </header>
+
+    <main class="w-full max-w-5xl pixel-box-main bg-white p-3 sm:p-5 flex flex-col lg:flex-row gap-5">
+
+        <button id="btnClose" type="button" class="popup-close-btn pixel-btn" aria-label="Close" title="Close">✕</button>
+
+        <!-- LEFT PANEL: Image Previews and Main Controls (Picture 1 style) -->
+        <section class="lg:w-1/3 flex flex-col items-center gap-3 border-b-4 lg:border-b-0 lg:border-r-4 border-[#2d232e] pb-5 lg:pb-0 lg:pr-5">
+
+            <div class="flex flex-row lg:flex-col gap-3 w-full justify-center items-center">
+                <!-- Small Image Frame (48x48 Pixel Preview) -->
+                <div class="pixel-box-orange p-2 flex flex-col items-center w-28 sm:w-32">
+                    <span class="text-base font-bold text-white pixel-font-title mb-1 text-xs">Image</span>
+                    <div class="p-1 bg-white border-2 border-[#2d232e] rounded-md">
+                        <canvas id="canvasSmall" width="48" height="48" class="w-16 h-16 bg-white block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Expanded Sample Frame -->
+                <div class="pixel-box-orange p-2 sm:p-3 flex flex-col items-center flex-1 lg:w-full">
+                    <span class="text-lg font-bold text-white pixel-font-title mb-1 text-sm">Expanded Sample</span>
+                    <div class="p-2 bg-white border-2 border-[#2d232e] rounded-md">
+                        <canvas id="avatarCanvas" width="48" height="48" class="w-40 h-40 sm:w-48 sm:h-48 bg-white block"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="w-full flex flex-col gap-2 mt-auto">
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btnRandom" class="pixel-btn bg-[#70d6ff] text-[#1d161e] font-bold text-lg py-1.5 px-2 hover:bg-[#52c4f0]">
+                        🎲 Random
+                    </button>
+                    <button id="btnReset" class="pixel-btn bg-[#ffb703] text-[#1d161e] font-bold text-lg py-1.5 px-2 hover:bg-[#ffa000]">
+                        🔄 Reset
+                    </button>
+                </div>
+
+                <button id="btnSave" class="pixel-btn bg-white text-[#1d161e] font-bold text-xl py-2 px-4 hover:bg-gray-100 border-2 border-[#1d161e] text-center shadow-[3px_3px_0px_#1d161e]">
+                    SAVE
+                    <div class="text-xs font-normal text-gray-600">(Local disk)</div>
+                </button>
+                <div class="text-center text-xs text-gray-600 font-bold">
+                    48 square pixel PNG image will be saved.
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Category Navigation & Isolated Feature Tile Grid -->
+        <section class="lg:w-2/3 flex flex-col gap-3">
+
+            <div class="flex flex-col sm:flex-row gap-3 h-full">
+                <!-- Left Navigation (Categories) -->
+                <nav id="categoryNav" class="sm:w-1/3 flex flex-row sm:flex-col overflow-x-auto sm:overflow-y-auto max-h-[140px] sm:max-h-[460px] gap-1 p-1">
+                    <!-- Categories injected by JS -->
+                </nav>
+
+                <!-- Right Orange Grid Container (Asset Tiles) -->
+                <div class="sm:w-2/3 pixel-box-orange p-3 flex flex-col min-h-[380px]">
+                    <div class="flex justify-between items-center border-b-2 border-[#1d161e] pb-2 mb-3">
+                        <span id="currentCategoryTitle" class="text-xl font-bold text-white uppercase tracking-wider">
+                            Face & Body
+                        </span>
+                        <span id="itemCount" class="text-sm font-bold text-[#ffe3d1]">
+                            0 Options
+                        </span>
+                    </div>
+
+                    <!-- Options Tile Grid -->
+                    <div id="optionsGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 overflow-y-auto max-h-[360px] p-1 pr-1">
+                        <!-- Isolated Asset Tile Buttons injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer note -->
+            <footer class="text-center text-sm font-bold text-[#2d232e] mt-auto pt-1">
+                ★ Click isolated assets to customize • Styled after Picture 2 pixel graphics ★
+            </footer>
+        </section>
+
+    </main>
+
+    <!-- Hidden Offscreen Canvas for Rendering Isolated Asset Thumbnails -->
+    <canvas id="tileCanvas" width="48" height="48" class="hidden"></canvas>
+
+    <script>
+        const PALETTES = {
+            fur: [
+                { id: 'black', name: 'Black', base: '#2b2b2e', highlight: '#424248', shadow: '#1a1a1c', innerEar: '#ff9ebb' },
+                { id: 'orange', name: 'Orange Tabby', base: '#f49342', highlight: '#ffb26b', shadow: '#c4691c', innerEar: '#ffd0c7' },
+                { id: 'white', name: 'White', base: '#f0f3f8', highlight: '#ffffff', shadow: '#c5d1e0', innerEar: '#ffb6c1' },
+                { id: 'grey', name: 'Charcoal Grey', base: '#6c757d', highlight: '#8d99ae', shadow: '#495057', innerEar: '#ffa6c9' },
+                { id: 'siamese', name: 'Siamese', base: '#f7e7ce', highlight: '#fff5e6', shadow: '#d6c2a5', darkMask: '#4a3525', innerEar: '#e8b4b8' },
+                { id: 'calico', name: 'Calico', base: '#f0f3f8', highlight: '#ffffff', shadow: '#c5d1e0', patch1: '#f49342', patch2: '#2b2b2e', innerEar: '#ffb6c1' }
+            ],
+            eyes: [
+                { id: 'yellow', name: 'Bright Yellow', iris: '#ffda3d', pupil: '#111111', highlight: '#ffffff' },
+                { id: 'green', name: 'Emerald Green', iris: '#38b000', pupil: '#111111', highlight: '#ffffff' },
+                { id: 'iceblue', name: 'Ice Blue', iris: '#70d6ff', pupil: '#111111', highlight: '#ffffff' },
+                { id: 'amber', name: 'Amber Orange', iris: '#ff7b00', pupil: '#111111', highlight: '#ffffff' },
+                { id: 'sapphire', name: 'Deep Sapphire', iris: '#0077b6', pupil: '#111111', highlight: '#ffffff' }
+            ],
+            backgrounds: [
+                { id: 'pink', name: 'Soft Pink', color: '#ffc0cb' },
+                { id: 'mint', name: 'Mint Green', color: '#b7efc5' },
+                { id: 'lavender', name: 'Lavender', color: '#d8bbff' },
+                { id: 'sky', name: 'Sky Blue', color: '#a0c4ff' },
+                { id: 'cream', name: 'Warm Cream', color: '#fefae0' },
+                { id: 'dark', name: 'Night Grey', color: '#2b2d42' },
+                { id: 'none', name: 'Transparent', color: 'transparent' }
+            ]
+        };
+
+        const state = {
+            bodyStyle: 'sitting', // 'headOnly', 'sitting'
+            furColor: 'black',
+            earStyle: 'pointed',   // 'pointed', 'tufted', 'folded'
+            eyeStyle: 'round',     // 'round', 'slit', 'happy', 'sleep'
+            eyeColor: 'yellow',
+            noseMouth: 'cute_w',   // 'cute_w', 'tiny_smile', 'cat_o', 'dot'
+            pattern: 'none',       // 'none', 'stripes', 'siamese_mask', 'calico_spots', 'chest_fluff'
+            tail: 'curled',        // 'none', 'curled', 'straight', 'fluffy'
+            accessory: 'none',     // 'none', 'fish', 'yarn', 'mouse', 'flower', 'bell'
+            background: 'pink'
+        };
+
+        const CATEGORIES = [
+            { id: 'bodyStyle', label: 'Face & Body', options: [
+                { id: 'sitting', name: 'Full Body' },
+                { id: 'headOnly', name: 'Head Only' }
+            ]},
+            { id: 'furColor', label: 'Fur Color', options: PALETTES.fur.map(f => ({ id: f.id, name: f.name })) },
+            { id: 'earStyle', label: 'Ear Style', options: [
+                { id: 'pointed', name: 'Pointed' },
+                { id: 'tufted', name: 'Tufted' },
+                { id: 'folded', name: 'Folded' }
+            ]},
+            { id: 'eyeStyle', label: 'Eye Shape', options: [
+                { id: 'round', name: 'Round Iris' },
+                { id: 'slit', name: 'Slit Iris' },
+                { id: 'happy', name: 'Happy Arc' },
+                { id: 'sleep', name: 'Sleeping' }
+            ]},
+            { id: 'eyeColor', label: 'Eye Color', options: PALETTES.eyes.map(e => ({ id: e.id, name: e.name })) },
+            { id: 'noseMouth', label: 'Mouth / Nose', options: [
+                { id: 'cute_w', name: 'Cute :w:' },
+                { id: 'tiny_smile', name: 'Smile' },
+                { id: 'cat_o', name: 'Open :o' },
+                { id: 'dot', name: 'Dot Nose' }
+            ]},
+            { id: 'pattern', label: 'Fur Pattern', options: [
+                { id: 'none', name: 'None' },
+                { id: 'stripes', name: 'Tabby' },
+                { id: 'siamese_mask', name: 'Mask' },
+                { id: 'calico_spots', name: 'Calico' },
+                { id: 'chest_fluff', name: 'Chest Fluff' }
+            ]},
+            { id: 'tail', label: 'Tail Style', options: [
+                { id: 'curled', name: 'Curled' },
+                { id: 'straight', name: 'Upright' },
+                { id: 'fluffy', name: 'Fluffy' },
+                { id: 'none', name: 'No Tail' }
+            ]},
+            { id: 'accessory', label: 'Held Items', options: [
+                { id: 'none', name: 'None' },
+                { id: 'fish', name: 'Cyan Fish' },
+                { id: 'yarn', name: 'Yarn Ball' },
+                { id: 'mouse', name: 'Toy Mouse' },
+                { id: 'flower', name: 'Lily Flower' },
+                { id: 'bell', name: 'Ribbon Bell' }
+            ]},
+            { id: 'background', label: 'Background', options: PALETTES.backgrounds.map(b => ({ id: b.id, name: b.name })) }
+        ];
+
+        let activeCategory = 'bodyStyle';
+
+        const mainCanvas = document.getElementById('avatarCanvas');
+        const mainCtx = mainCanvas.getContext('2d');
+        const smallCanvas = document.getElementById('canvasSmall');
+        const smallCtx = smallCanvas.getContext('2d');
+        const tileCanvas = document.getElementById('tileCanvas');
+        const tileCtx = tileCanvas.getContext('2d');
+
+        mainCtx.imageSmoothingEnabled = false;
+        smallCtx.imageSmoothingEnabled = false;
+        tileCtx.imageSmoothingEnabled = false;
+
+        function drawPixel(ctx, x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, 1, 1);
+        }
+
+        function drawRect(ctx, x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+        }
+
+        function renderCat(ctx, config) {
+            ctx.clearRect(0, 0, 48, 48);
+
+            const fur = PALETTES.fur.find(f => f.id === config.furColor) || PALETTES.fur[0];
+            const eyeCol = PALETTES.eyes.find(e => e.id === config.eyeColor) || PALETTES.eyes[0];
+            const bg = PALETTES.backgrounds.find(b => b.id === config.background) || PALETTES.backgrounds[0];
+
+            // 1. Background
+            if (bg.color !== 'transparent') {
+                drawRect(ctx, 0, 0, 48, 48, bg.color);
+            }
+
+            // 2. Tail (If sitting pose)
+            if (config.bodyStyle === 'sitting' && config.tail !== 'none') {
+                renderTailPart(ctx, config.tail, fur, 0, 0);
+            }
+
+            // 3. Body (If sitting pose)
+            if (config.bodyStyle === 'sitting') {
+                renderBodyPart(ctx, fur, 0, 0);
+            }
+
+            // 4. Ears
+            renderEarsPart(ctx, config.earStyle, fur, 0, 0);
+
+            // 5. Head Base
+            renderHeadBasePart(ctx, fur, 0, 0);
+
+            // 6. Patterns
+            renderPatternPart(ctx, config.pattern, fur, 0, 0);
+
+            // 7. Eyes
+            renderEyesPart(ctx, config.eyeStyle, eyeCol, 0, 0);
+
+            // 8. Nose & Mouth
+            renderNoseMouthPart(ctx, config.noseMouth, 0, 0);
+
+            // 9. Accessories
+            if (config.accessory !== 'none') {
+                renderAccessoryPart(ctx, config.accessory, 0, 0);
+            }
+        }
+
+        // --- ISOLATED PART RENDERING FUNCTIONS (Used for Both Full Cat & Isolated Tiles) ---
+
+        function renderHeadBasePart(ctx, fur, dx = 0, dy = 0) {
+            drawRect(ctx, 12 + dx, 14 + dy, 24, 16, fur.base);
+            drawRect(ctx, 10 + dx, 16 + dy, 28, 12, fur.base);
+            drawRect(ctx, 14 + dx, 12 + dy, 20, 20, fur.base);
+
+            // Shading & Highlights
+            drawRect(ctx, 12 + dx, 28 + dy, 24, 2, fur.shadow);
+            drawRect(ctx, 10 + dx, 26 + dy, 2, 2, fur.shadow);
+            drawRect(ctx, 36 + dx, 26 + dy, 2, 2, fur.shadow);
+            drawRect(ctx, 14 + dx, 13 + dy, 20, 1, fur.highlight);
+        }
+
+        function renderBodyPart(ctx, fur, dx = 0, dy = 0) {
+            drawRect(ctx, 16 + dx, 28 + dy, 16, 14, fur.base);
+            drawRect(ctx, 14 + dx, 32 + dy, 20, 10, fur.base);
+            drawRect(ctx, 14 + dx, 41 + dy, 20, 2, fur.shadow);
+            drawRect(ctx, 16 + dx, 28 + dy, 2, 12, fur.shadow);
+
+            // Left Paw
+            drawRect(ctx, 17 + dx, 40 + dy, 5, 3, fur.highlight);
+            drawRect(ctx, 17 + dx, 42 + dy, 5, 1, fur.shadow);
+            drawPixel(ctx, 18 + dx, 41 + dy, fur.shadow);
+            drawPixel(ctx, 20 + dx, 41 + dy, fur.shadow);
+
+            // Right Paw
+            drawRect(ctx, 26 + dx, 40 + dy, 5, 3, fur.highlight);
+            drawRect(ctx, 26 + dx, 42 + dy, 5, 1, fur.shadow);
+            drawPixel(ctx, 27 + dx, 41 + dy, fur.shadow);
+            drawPixel(ctx, 29 + dx, 41 + dy, fur.shadow);
+        }
+
+        function renderEarsPart(ctx, style, fur, dx = 0, dy = 0) {
+            const earColor = (fur.id === 'siamese') ? fur.darkMask : fur.base;
+            const inner = fur.innerEar;
+
+            if (style === 'pointed' || style === 'tufted') {
+                drawRect(ctx, 11 + dx, 7 + dy, 6, 7, earColor);
+                drawRect(ctx, 13 + dx, 5 + dy, 3, 3, earColor);
+                drawRect(ctx, 13 + dx, 8 + dy, 3, 4, inner);
+
+                drawRect(ctx, 31 + dx, 7 + dy, 6, 7, earColor);
+                drawRect(ctx, 32 + dx, 5 + dy, 3, 3, earColor);
+                drawRect(ctx, 32 + dx, 8 + dy, 3, 4, inner);
+
+                if (style === 'tufted') {
+                    drawPixel(ctx, 14 + dx, 3 + dy, '#ffffff');
+                    drawPixel(ctx, 13 + dx, 4 + dy, '#ffffff');
+                    drawPixel(ctx, 33 + dx, 3 + dy, '#ffffff');
+                    drawPixel(ctx, 34 + dx, 4 + dy, '#ffffff');
+                }
+            } else if (style === 'folded') {
+                drawRect(ctx, 10 + dx, 12 + dy, 6, 4, earColor);
+                drawRect(ctx, 11 + dx, 11 + dy, 4, 2, earColor);
+                drawRect(ctx, 11 + dx, 13 + dy, 3, 2, inner);
+
+                drawRect(ctx, 32 + dx, 12 + dy, 6, 4, earColor);
+                drawRect(ctx, 33 + dx, 11 + dy, 4, 2, earColor);
+                drawRect(ctx, 34 + dx, 13 + dy, 3, 2, inner);
+            }
+        }
+
+        function renderTailPart(ctx, style, fur, dx = 0, dy = 0) {
+            const dark = fur.id === 'siamese' ? fur.darkMask : fur.base;
+            const shadow = fur.shadow;
+
+            if (style === 'curled') {
+                drawRect(ctx, 33 + dx, 26 + dy, 4, 10, dark);
+                drawRect(ctx, 35 + dx, 24 + dy, 6, 4, dark);
+                drawRect(ctx, 39 + dx, 20 + dy, 4, 6, dark);
+                drawRect(ctx, 33 + dx, 34 + dy, 4, 2, shadow);
+            } else if (style === 'straight') {
+                drawRect(ctx, 34 + dx, 18 + dy, 4, 16, dark);
+                drawRect(ctx, 36 + dx, 16 + dy, 3, 3, dark);
+                drawRect(ctx, 34 + dx, 32 + dy, 4, 2, shadow);
+            } else if (style === 'fluffy') {
+                drawRect(ctx, 32 + dx, 22 + dy, 8, 14, dark);
+                drawRect(ctx, 36 + dx, 18 + dy, 6, 6, dark);
+                drawRect(ctx, 30 + dx, 28 + dy, 4, 6, dark);
+                drawRect(ctx, 32 + dx, 34 + dy, 8, 2, shadow);
+            }
+        }
+
+        function renderPatternPart(ctx, pattern, fur, dx = 0, dy = 0) {
+            if (pattern === 'stripes') {
+                const stripeCol = fur.shadow;
+                drawRect(ctx, 23 + dx, 13 + dy, 2, 4, stripeCol);
+                drawRect(ctx, 19 + dx, 14 + dy, 2, 3, stripeCol);
+                drawRect(ctx, 27 + dx, 14 + dy, 2, 3, stripeCol);
+                drawRect(ctx, 11 + dx, 22 + dy, 3, 1, stripeCol);
+                drawRect(ctx, 11 + dx, 24 + dy, 4, 1, stripeCol);
+                drawRect(ctx, 34 + dx, 22 + dy, 3, 1, stripeCol);
+                drawRect(ctx, 33 + dx, 24 + dy, 4, 1, stripeCol);
+            } else if (pattern === 'siamese_mask') {
+                const mask = fur.darkMask || '#4a3525';
+                drawRect(ctx, 18 + dx, 18 + dy, 12, 10, mask);
+                drawRect(ctx, 20 + dx, 16 + dy, 8, 3, mask);
+                drawRect(ctx, 21 + dx, 28 + dy, 6, 2, mask);
+            } else if (pattern === 'calico_spots') {
+                drawRect(ctx, 12 + dx, 14 + dy, 7, 6, fur.patch1 || '#f49342');
+                drawRect(ctx, 28 + dx, 14 + dy, 8, 7, fur.patch2 || '#2b2b2e');
+                drawRect(ctx, 30 + dx, 22 + dy, 5, 5, fur.patch1 || '#f49342');
+            } else if (pattern === 'chest_fluff') {
+                drawRect(ctx, 21 + dx, 27 + dy, 6, 5, '#ffffff');
+                drawRect(ctx, 22 + dx, 32 + dy, 4, 4, '#ffffff');
+            }
+        }
+
+        function renderEyesPart(ctx, style, eyeCol, dx = 0, dy = 0) {
+            if (style === 'round') {
+                drawRect(ctx, 15 + dx, 18 + dy, 6, 6, eyeCol.iris);
+                drawRect(ctx, 17 + dx, 19 + dy, 3, 4, eyeCol.pupil);
+                drawPixel(ctx, 16 + dx, 19 + dy, eyeCol.highlight);
+
+                drawRect(ctx, 27 + dx, 18 + dy, 6, 6, eyeCol.iris);
+                drawRect(ctx, 29 + dx, 19 + dy, 3, 4, eyeCol.pupil);
+                drawPixel(ctx, 28 + dx, 19 + dy, eyeCol.highlight);
+            } else if (style === 'slit') {
+                drawRect(ctx, 15 + dx, 18 + dy, 6, 6, eyeCol.iris);
+                drawRect(ctx, 17 + dx, 18 + dy, 2, 6, eyeCol.pupil);
+                drawPixel(ctx, 15 + dx, 19 + dy, eyeCol.highlight);
+
+                drawRect(ctx, 27 + dx, 18 + dy, 6, 6, eyeCol.iris);
+                drawRect(ctx, 29 + dx, 18 + dy, 2, 6, eyeCol.pupil);
+                drawPixel(ctx, 27 + dx, 19 + dy, eyeCol.highlight);
+            } else if (style === 'happy') {
+                drawRect(ctx, 15 + dx, 19 + dy, 6, 2, '#111111');
+                drawPixel(ctx, 14 + dx, 21 + dy, '#111111');
+                drawPixel(ctx, 21 + dx, 21 + dy, '#111111');
+
+                drawRect(ctx, 27 + dx, 19 + dy, 6, 2, '#111111');
+                drawPixel(ctx, 26 + dx, 21 + dy, '#111111');
+                drawPixel(ctx, 33 + dx, 21 + dy, '#111111');
+            } else if (style === 'sleep') {
+                drawRect(ctx, 15 + dx, 21 + dy, 6, 2, '#111111');
+                drawRect(ctx, 27 + dx, 21 + dy, 6, 2, '#111111');
+            }
+        }
+
+        function renderNoseMouthPart(ctx, style, dx = 0, dy = 0) {
+            drawRect(ctx, 23 + dx, 23 + dy, 2, 1, '#ff85a6'); // Pink Nose
+
+            if (style === 'cute_w') {
+                drawPixel(ctx, 22 + dx, 25 + dy, '#2d232e');
+                drawPixel(ctx, 23 + dx, 26 + dy, '#2d232e');
+                drawPixel(ctx, 24 + dx, 25 + dy, '#2d232e');
+                drawPixel(ctx, 25 + dx, 26 + dy, '#2d232e');
+            } else if (style === 'tiny_smile') {
+                drawRect(ctx, 23 + dx, 25 + dy, 2, 1, '#2d232e');
+                drawPixel(ctx, 22 + dx, 24 + dy, '#2d232e');
+                drawPixel(ctx, 25 + dx, 24 + dy, '#2d232e');
+            } else if (style === 'cat_o') {
+                drawRect(ctx, 23 + dx, 25 + dy, 2, 2, '#2d232e');
+            } else if (style === 'dot') {
+                drawPixel(ctx, 23 + dx, 25 + dy, '#2d232e');
+            }
+        }
+
+        function renderAccessoryPart(ctx, acc, dx = 0, dy = 0) {
+            if (acc === 'fish') {
+                // Bottom Right Corner: Fish (x: 32-44, y: 36-44)
+                drawRect(ctx, 32 + dx, 38 + dy, 10, 5, '#4cc9f0');
+                drawRect(ctx, 42 + dx, 36 + dy, 4, 9, '#4cc9f0');
+                drawPixel(ctx, 34 + dx, 39 + dy, '#ffffff');
+                drawPixel(ctx, 35 + dx, 39 + dy, '#111111');
+                drawPixel(ctx, 38 + dx, 41 + dy, '#3a0ca3');
+            } else if (acc === 'yarn') {
+                // Bottom Right Corner: Yarn Ball with tail string (x: 33-45, y: 33-45)
+                drawRect(ctx, 35 + dx, 35 + dy, 10, 10, '#38b000');
+                drawRect(ctx, 37 + dx, 33 + dy, 6, 14, '#38b000');
+                drawRect(ctx, 33 + dx, 37 + dy, 14, 6, '#38b000');
+                drawPixel(ctx, 37 + dx, 36 + dy, '#70e000');
+                drawPixel(ctx, 41 + dx, 40 + dy, '#70e000');
+                // Yarn trailing string
+                drawPixel(ctx, 33 + dx, 43 + dy, '#70e000');
+                drawPixel(ctx, 34 + dx, 44 + dy, '#70e000');
+            } else if (acc === 'mouse') {
+                // Bottom Right Corner: Toy Mouse (x: 31-45, y: 38-44)
+                drawRect(ctx, 34 + dx, 38 + dy, 9, 6, '#8d99ae');
+                drawPixel(ctx, 43 + dx, 40 + dy, '#ff85a6'); // Nose
+                drawPixel(ctx, 37 + dx, 36 + dy, '#ff85a6'); // Ear
+                // Tail curving left
+                drawRect(ctx, 28 + dx, 42 + dy, 6, 1, '#ff85a6');
+                drawPixel(ctx, 33 + dx, 41 + dy, '#ff85a6');
+            } else if (acc === 'flower') {
+                // Bottom Right Corner: Lily Flower (x: 32-45, y: 32-45)
+                drawRect(ctx, 38 + dx, 38 + dy, 3, 8, '#52b788'); // Stem
+                drawRect(ctx, 34 + dx, 32 + dy, 5, 5, '#ffffff'); // Petal left
+                drawRect(ctx, 41 + dx, 32 + dy, 5, 5, '#ffffff'); // Petal right
+                drawRect(ctx, 37 + dx, 30 + dy, 6, 5, '#ffffff'); // Petal top
+                drawRect(ctx, 37 + dx, 36 + dy, 6, 3, '#ffffff'); // Petal bottom
+                drawRect(ctx, 38 + dx, 34 + dy, 4, 3, '#ffb703'); // Center pistil
+            } else if (acc === 'bell') {
+                // Bottom Right Corner: Ribbon Bell (x: 32-45, y: 33-45)
+                drawRect(ctx, 34 + dx, 33 + dy, 10, 4, '#d90429'); // Ribbon bow
+                drawRect(ctx, 36 + dx, 37 + dy, 6, 6, '#ffb703'); // Bell body
+                drawRect(ctx, 35 + dx, 43 + dy, 8, 2, '#ffb703'); // Bell rim
+                drawPixel(ctx, 39 + dx, 41 + dy, '#111111'); // Clapper hole
+            }
+        }
+
+        // --- ISOLATED FEATURE THUMBNAIL GENERATOR (Picture 2 style) ---
+        function renderIsolatedTile(ctx, catId, optionId) {
+            ctx.clearRect(0, 0, 48, 48);
+
+            const currentFur = PALETTES.fur.find(f => f.id === state.furColor) || PALETTES.fur[0];
+            const currentEyeCol = PALETTES.eyes.find(e => e.id === state.eyeColor) || PALETTES.eyes[0];
+
+            if (catId === 'bodyStyle') {
+                // Isolated full silhouette or head outline
+                if (optionId === 'sitting') {
+                    renderBodyPart(ctx, currentFur, 0, -6);
+                    renderHeadBasePart(ctx, currentFur, 0, -6);
+                } else {
+                    renderHeadBasePart(ctx, currentFur, 0, 4);
+                }
+            } else if (catId === 'furColor') {
+                // Color swatch tile with paw print (Picture 2 paw design)
+                const fur = PALETTES.fur.find(f => f.id === optionId) || currentFur;
+                drawRect(ctx, 8, 8, 32, 32, fur.base);
+                // Paw pad print on top
+                drawRect(ctx, 18, 22, 12, 10, fur.innerEar || '#ffb6c1');
+                drawCirclePad(ctx, 15, 17, fur.innerEar || '#ffb6c1');
+                drawCirclePad(ctx, 21, 15, fur.innerEar || '#ffb6c1');
+                drawCirclePad(ctx, 27, 15, fur.innerEar || '#ffb6c1');
+                drawCirclePad(ctx, 33, 17, fur.innerEar || '#ffb6c1');
+            } else if (catId === 'earStyle') {
+                // ONLY pair of ears
+                renderEarsPart(ctx, optionId, currentFur, 0, 10);
+            } else if (catId === 'eyeStyle') {
+                // ONLY pair of eyes
+                renderEyesPart(ctx, optionId, currentEyeCol, 0, 2);
+            } else if (catId === 'eyeColor') {
+                // Picture 2 style BIG eye close-up icon!
+                const eyeCol = PALETTES.eyes.find(e => e.id === optionId) || currentEyeCol;
+                // Draw large round iris tile like Picture 2 row 2
+                drawBigEyeTile(ctx, eyeCol);
+            } else if (catId === 'noseMouth') {
+                // ONLY nose & mouth
+                renderNoseMouthPart(ctx, optionId, 0, 2);
+            } else if (catId === 'pattern') {
+                // Isolated pattern swatch on fur block
+                drawRect(ctx, 8, 8, 32, 32, currentFur.base);
+                if (optionId !== 'none') {
+                    renderPatternPart(ctx, optionId, currentFur, 0, 0);
+                } else {
+                    // Draw "X" or "None" indicator
+                    drawNoneCross(ctx);
+                }
+            } else if (catId === 'tail') {
+                // ONLY isolated tail graphic
+                if (optionId !== 'none') {
+                    renderTailPart(ctx, optionId, currentFur, -10, 2);
+                } else {
+                    drawNoneCross(ctx);
+                }
+            } else if (catId === 'accessory') {
+                // ONLY isolated accessory item centered inside the option tile
+                if (optionId !== 'none') {
+                    renderAccessoryPart(ctx, optionId, -12, -12);
+                } else {
+                    drawNoneCross(ctx);
+                }
+            } else if (catId === 'background') {
+                // Background color swatch tile
+                const bg = PALETTES.backgrounds.find(b => b.id === optionId);
+                if (bg && bg.color !== 'transparent') {
+                    drawRect(ctx, 6, 6, 36, 36, bg.color);
+                    drawRect(ctx, 6, 6, 36, 36, 'rgba(0,0,0,0.1)');
+                } else {
+                    // Transparent checkerboard
+                    drawRect(ctx, 6, 6, 18, 18, '#cccccc');
+                    drawRect(ctx, 24, 6, 18, 18, '#ffffff');
+                    drawRect(ctx, 6, 24, 18, 18, '#ffffff');
+                    drawRect(ctx, 24, 24, 18, 18, '#cccccc');
+                }
+            }
+        }
+
+        // Helper: Picture 2 Big Eye Close-up Thumbnail
+        function drawBigEyeTile(ctx, eyeCol) {
+            // Big circular eye graphic (18x18 radius approx)
+            drawRect(ctx, 15, 15, 18, 18, eyeCol.iris);
+            drawRect(ctx, 18, 12, 12, 24, eyeCol.iris);
+            drawRect(ctx, 12, 18, 24, 12, eyeCol.iris);
+
+            // Pupil
+            drawRect(ctx, 20, 18, 8, 12, eyeCol.pupil);
+
+            // Glossy Highlights
+            drawRect(ctx, 16, 16, 4, 6, eyeCol.highlight);
+            drawRect(ctx, 28, 26, 3, 3, eyeCol.highlight);
+        }
+
+        function drawCirclePad(ctx, x, y, color) {
+            drawRect(ctx, x, y, 4, 4, color);
+        }
+
+        function drawNoneCross(ctx) {
+            ctx.strokeStyle = '#d90429';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(14, 14);
+            ctx.lineTo(34, 34);
+            ctx.moveTo(34, 14);
+            ctx.lineTo(14, 34);
+            ctx.stroke();
+        }
+
+        function initUI() {
+            renderCategoryNav();
+            renderOptionsGrid();
+            updateCanvas();
+
+            document.getElementById('btnRandom').addEventListener('click', randomizeCat);
+            document.getElementById('btnReset').addEventListener('click', resetCat);
+            document.getElementById('btnSave').addEventListener('click', saveCatImage);
+            document.getElementById('btnClose').addEventListener('click', closePopup);
+        }
+
+        // Lets a page embedding this tool in an iframe pull the current cat at any
+        // time (e.g. right before it tears the iframe down), without this page having
+        // to know when that will happen.
+        window.getAvatarSnapshot = function () {
+            return mainCanvas.toDataURL('image/png');
+        };
+
+        function closePopup() {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'mina:avatarPopupCloseRequest' }, '*');
+            } else {
+                window.close();
+            }
+        }
+
+        function updateCanvas() {
+            renderCat(mainCtx, state);
+            renderCat(smallCtx, state);
+        }
+
+        function renderCategoryNav() {
+            const nav = document.getElementById('categoryNav');
+            nav.innerHTML = '';
+
+            CATEGORIES.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `category-btn font-bold whitespace-nowrap ${activeCategory === cat.id ? 'active' : ''}`;
+                btn.textContent = cat.label;
+                btn.onclick = () => {
+                    activeCategory = cat.id;
+                    renderCategoryNav();
+                    renderOptionsGrid();
+                };
+                nav.appendChild(btn);
+            });
+        }
+
+        function renderOptionsGrid() {
+            const grid = document.getElementById('optionsGrid');
+            const title = document.getElementById('currentCategoryTitle');
+            const count = document.getElementById('itemCount');
+            grid.innerHTML = '';
+
+            const currentCatObj = CATEGORIES.find(c => c.id === activeCategory);
+            title.textContent = currentCatObj.label;
+            count.textContent = `${currentCatObj.options.length} Items`;
+
+            currentCatObj.options.forEach(opt => {
+                const btn = document.createElement('button');
+                const isActive = state[activeCategory] === opt.id;
+
+                btn.className = `asset-tile flex flex-col items-center justify-center p-1.5 min-h-[76px] ${isActive ? 'active' : ''}`;
+
+                // Render ISOLATED feature thumbnail on offscreen tile canvas
+                renderIsolatedTile(tileCtx, activeCategory, opt.id);
+
+                const img = document.createElement('img');
+                img.src = tileCanvas.toDataURL();
+                img.className = 'w-10 h-10 pixel-render pointer-events-none';
+
+                const label = document.createElement('span');
+                label.className = `text-xs font-bold leading-tight text-center mt-1 ${isActive ? 'text-white' : 'text-[#1d161e]'}`;
+                label.textContent = opt.name;
+
+                btn.appendChild(img);
+                btn.appendChild(label);
+
+                btn.onclick = () => {
+                    state[activeCategory] = opt.id;
+                    renderOptionsGrid();
+                    updateCanvas();
+                };
+
+                grid.appendChild(btn);
+            });
+        }
+
+        function randomizeCat() {
+            CATEGORIES.forEach(cat => {
+                const opts = cat.options;
+                const randomOpt = opts[Math.floor(Math.random() * opts.length)].id;
+                state[cat.id] = randomOpt;
+            });
+            renderOptionsGrid();
+            updateCanvas();
+        }
+
+        function resetCat() {
+            state.bodyStyle = 'sitting';
+            state.furColor = 'black';
+            state.earStyle = 'pointed';
+            state.eyeStyle = 'round';
+            state.eyeColor = 'yellow';
+            state.noseMouth = 'cute_w';
+            state.pattern = 'none';
+            state.tail = 'curled';
+            state.accessory = 'none';
+            state.background = 'pink';
+
+            renderOptionsGrid();
+            updateCanvas();
+        }
+
+        function saveCatImage() {
+            const link = document.createElement('a');
+            link.download = `cat-avatar-${Date.now()}.png`;
+            link.href = mainCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        window.onload = function() {
+            initUI();
+        };
+    </script>
+</body>
+</html>
