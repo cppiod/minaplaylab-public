@@ -11,3 +11,10 @@ External fonts, Tailwind CSS, and dictionary lookups depend on third-party servi
 GitHub repository Settings → Pages → Deploy from a branch → `main` / root. `.nojekyll` keeps this a plain static site. All paths work under a repository subdirectory.
 
 The self-hosted family app is maintained separately. This repository contains only the selected public browser edition and has no family account system or shared database.
+
+## Curriculum indexes
+
+- [Core Knowledge Science, Grades 1–5](curriculum/core-knowledge-science.html): 42 entries with official unit, ZIP, and PDF links.
+- [Teacher Resource Cabin playlists](curriculum/teacher-resource-cabin.html): 43 playlists with grade, subject, and topic filters.
+
+Both indexes were compiled on 26 November 2026. Curriculum downloads remain hosted by the original publishers.
