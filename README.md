@@ -22,3 +22,5 @@ Both indexes were compiled on 26 November 2026. Curriculum downloads remain host
 - [Art of Problem Solving math index](curriculum/art-of-problem-solving.html): 76 playlists and YouTube courses grouped by track and chapter.
 
 - [Homeschool Pop curriculum index](curriculum/homeschool-pop.html): 754 public playlists and courses with title search, subject tags, and grade filters.
+
+- [ReadWorks NGSS science reading index](curriculum/readworks-ngss.html): 324 passage placements across 49 NGSS standard groups, with grade and science-area filters. Compiled 27 November 2026.
