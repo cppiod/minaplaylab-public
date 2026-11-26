@@ -20,3 +20,5 @@ The self-hosted family app is maintained separately. This repository contains on
 Both indexes were compiled on 26 November 2026. Curriculum downloads remain hosted by the original publishers.
 
 - [Art of Problem Solving math index](curriculum/art-of-problem-solving.html): 76 playlists and YouTube courses grouped by track and chapter.
+
+- [Homeschool Pop curriculum index](curriculum/homeschool-pop.html): 754 public playlists and courses with title search, subject tags, and grade filters.
